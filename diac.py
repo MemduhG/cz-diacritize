@@ -12,12 +12,11 @@ def tokenize(line):
 
 
 def alternatives(fname="data/map.txt"):
-    d one_to_one = {}, {}
+    d, one_to_one = {}, {}
     with open(fname) as infile:
         for line in infile:
             a, b = [x.strip() for x in line.split(";")]
-            try: one_to_one[a].append(b)
-            except KeyError: one_to_one[a] = [b]
+            one_to_one[a] = b
             try: d[b].append(a)
             except KeyError: d[b] = [a]
     return one_to_one, d
@@ -30,6 +29,7 @@ def read_data(fname="data/corpus_ebooks"):
 
 
 def permutations(word, alts, counts):
+    print(word)
     lists = []
     for letter in word:
         if letter in alts:
@@ -43,19 +43,18 @@ def permutations(word, alts, counts):
     return best[0]
 
 def diacritize(sentence, alts, counts):
-    tokens = tokenize(sentence)
     out = []
-    for token in tokens:
+    for token in sentence:
         if token in counts:
             out.append(token)
         else:
             out.append(permutations(token, alts, counts))
-    return " ".join(out)
+    return out
 
 def unmark(sentence, mapping):
     tokenized = tokenize(sentence)
     out = []
-    for item in tokenied:
+    for item in tokenized:
         word = item
         for letter in mapping:
             word.replace(letter, mapping[letter])
@@ -64,11 +63,23 @@ def unmark(sentence, mapping):
 
 def experiment(lines):
     train, test = lines[:50000], lines[50000:]
-    data = read_data()
     words = Counter()
-    for line in data:
+    for line in train:
         words.update(tokenize(line))
     ones, alt = alternatives()
+    total, correct = 0, 0
+    for line in test:
+        print(line)
+        if len(line)==0: continue
+        tokenized = tokenize(line)
+        diacritized = diacritize(unmark(line, ones), alt, words)
+        for c, _ in enumerate(tokenized):
+            if tokenized[c] == diacritized[c]:
+                correct +=1
+            total += 1
+    print(correct, total)
 
 
 if __name__ == "__main__":
+    data = read_data()
+    experiment(data)
